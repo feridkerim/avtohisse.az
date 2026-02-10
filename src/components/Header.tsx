@@ -10,9 +10,11 @@ export default function Header() {
     <header className="w-full py-5 sticky top-0 bg-white z-50">
       <div className="container">
         <div className="flex items-center flex-wrap place-content-between gap-4">
-          <div className="logo font-semibold text-2xl">
-            avtohisse<span className="text-red-600 ">.az</span>
-          </div>
+          <Link href="/">
+            <div className="logo font-semibold text-2xl">
+              avtohisse<span className="text-red-600 ">.az</span>
+            </div>
+          </Link>
           <CatalogMenu />
           <ButtonGroup>
             <Input

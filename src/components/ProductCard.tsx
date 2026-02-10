@@ -23,6 +23,13 @@ export default function ProductCard({
   image,
   isPremium = false,
 }: ProductCardProps) {
+  // Düyməyə klikləyəndə linkin (id-yə keçidin) işləməməsi üçün
+  const handleLike = (e: React.MouseEvent) => {
+    e.preventDefault(); // Linkə keçidi dayandırır
+    e.stopPropagation(); // Hadisənin yuxarı yayılmasını dayandırır
+    // Bura bəyənmə funksiyasını əlavə edə bilərsən
+  };
+
   return (
     <Link
       href={`/product/${id}`}
@@ -41,12 +48,18 @@ export default function ProductCard({
           className="object-contain p-4 group-hover:scale-105 transition-transform duration-500"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
         />
-        <button className="absolute top-3 right-3 cursor-pointer p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm hover:bg-white transition-colors">
+
+        {/* DƏYİŞİKLİK: 'button' teqi 'div' ilə əvəz olundu (Dizayn eynidir) */}
+        <div
+          role="button"
+          onClick={handleLike}
+          className="absolute top-3 right-3 cursor-pointer p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm hover:bg-white transition-colors z-20"
+        >
           <Icon
             icon="ph:heart"
             className="text-xl text-slate-600 hover:text-red-500"
           />
-        </button>
+        </div>
       </div>
 
       <div className="p-4 space-y-2 border-t border-slate-50">
@@ -58,7 +71,11 @@ export default function ProductCard({
           {title}
         </h3>
 
-        <div className="text-[12px] text-slate-400 font-sans pt-2 border-t border-slate-50">
+        {/* DƏYİŞİKLİK: suppressHydrationWarning əlavə olundu */}
+        <div
+          className="text-[12px] text-slate-400 font-sans pt-2 border-t border-slate-50"
+          suppressHydrationWarning
+        >
           {location}, {date}
         </div>
       </div>

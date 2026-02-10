@@ -2,10 +2,8 @@ import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
-import Filter from "@/components/Filter";
-import TopParts from "@/components/TopParts";
+
 import Footer from "@/components/Footer";
-import TopCategory from "@/components/TopCategory";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -29,9 +27,6 @@ export default function RootLayout({
         className={`${montserrat.variable} antialiased font-sans bg-white text-neutral-900`}
       >
         <Header />
-        <TopCategory />
-        <Filter />
-        <TopParts />
         {children}
         <Footer />
       </body>
