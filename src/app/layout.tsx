@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import "./globals.css";
+import Header from "@/components/Header";
+import Filter from "@/components/Filter";
+import TopParts from "@/components/TopParts";
+import Footer from "@/components/Footer";
+import TopCategory from "@/components/TopCategory";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const montserrat = Montserrat({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-montserrat",
 });
 
 export const metadata: Metadata = {
@@ -19,15 +20,20 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
+    <html lang="az">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${montserrat.variable} antialiased font-sans bg-white text-neutral-900`}
       >
+        <Header />
+        <TopCategory />
+        <Filter />
+        <TopParts />
         {children}
+        <Footer />
       </body>
     </html>
   );
