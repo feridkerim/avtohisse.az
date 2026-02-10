@@ -12,7 +12,7 @@ export default function Header() {
         <div className="flex items-center flex-wrap place-content-between gap-4">
           <Link href="/">
             <div className="logo font-semibold text-2xl">
-              avtohisse<span className="text-red-600 ">.az</span>
+              avtohisse<span className="text-[#e73121]">.az</span>
             </div>
           </Link>
           <CatalogMenu />

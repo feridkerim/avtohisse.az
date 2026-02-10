@@ -7,7 +7,7 @@ export const ADS_DATA: Product[] = [
     title: "Milever All Season Versat MC545",
     location: "Baki",
     date: "Bu gün 18:55",
-    image: "/images/products/thumb.jpg",
+    images: ["/images/products/thumb.jpg"],
     isPremium: true,
   },
   {
@@ -16,7 +16,11 @@ export const ADS_DATA: Product[] = [
     title: "TOPRAN 502 184 Link set, wheel suspension for BMW 5 Series",
     location: "Baki",
     date: "Bu gün 18:55",
-    image: "/images/products/thumb2.jpg",
+    images: [
+      "/images/products/thumb.jpg",
+      "/images/products/thumb2.jpg",
+      "/images/products/thumb3.jpg",
+    ],
     isPremium: true,
   },
   {
@@ -25,7 +29,11 @@ export const ADS_DATA: Product[] = [
     title: "MOBILETRON VR-LC111 Alternator Regulator",
     location: "Baki",
     date: "Bu gün 18:55",
-    image: "/images/products/thumb3.jpg",
+    images: [
+      "/images/products/thumb.jpg",
+      "/images/products/thumb2.jpg",
+      "/images/products/thumb3.jpg",
+    ],
   },
   {
     id: "4",
@@ -33,7 +41,11 @@ export const ADS_DATA: Product[] = [
     title: "LIQUI MOLY 3810 Housing / Flange Sealing Substance",
     location: "Baki",
     date: "Bu gün 18:55",
-    image: "/images/products/thumb4.jpg",
+    images: [
+      "/images/products/thumb.jpg",
+      "/images/products/thumb2.jpg",
+      "/images/products/thumb3.jpg",
+    ],
   },
   {
     id: "5",
@@ -41,7 +53,11 @@ export const ADS_DATA: Product[] = [
     title: "VAN WEZEL 0301563 Bumper for AUDI A1",
     location: "Baki",
     date: "Bu gün 18:55",
-    image: "/images/products/thumb5.jpg",
+    images: [
+      "/images/products/thumb.jpg",
+      "/images/products/thumb2.jpg",
+      "/images/products/thumb3.jpg",
+    ],
   },
   {
     id: "6",
@@ -49,7 +65,11 @@ export const ADS_DATA: Product[] = [
     title: "FEBI BILSTEIN 19934 Clamp, silencer",
     location: "Baki",
     date: "Bu gün 18:55",
-    image: "/images/products/thumb6.jpg",
+    images: [
+      "/images/products/thumb.jpg",
+      "/images/products/thumb2.jpg",
+      "/images/products/thumb3.jpg",
+    ],
     isPremium: true,
   },
   {
@@ -58,7 +78,11 @@ export const ADS_DATA: Product[] = [
     title: "VAICO V42-0391 Clamp, silencer",
     location: "Baki",
     date: "Bu gün 18:55",
-    image: "/images/products/thumb7.jpg",
+    images: [
+      "/images/products/thumb.jpg",
+      "/images/products/thumb2.jpg",
+      "/images/products/thumb3.jpg",
+    ],
     isPremium: true,
   },
   {
@@ -67,7 +91,11 @@ export const ADS_DATA: Product[] = [
     title: "BRINK 380000 Towbar suitable for JEEP GRAND CHEROKEE, COMMANDER",
     location: "Baki",
     date: "Bu gün 18:55",
-    image: "/images/products/thumb8.jpg",
+    images: [
+      "/images/products/thumb.jpg",
+      "/images/products/thumb2.jpg",
+      "/images/products/thumb3.jpg",
+    ],
     isPremium: true,
   },
   {
@@ -76,7 +104,11 @@ export const ADS_DATA: Product[] = [
     title: "FEBI BILSTEIN 31782 Crankshaft pulley",
     location: "Baki",
     date: "Bu gün 18:55",
-    image: "/images/products/thumb9.jpg",
+    images: [
+      "/images/products/thumb.jpg",
+      "/images/products/thumb2.jpg",
+      "/images/products/thumb3.jpg",
+    ],
   },
   {
     id: "10",
@@ -84,6 +116,10 @@ export const ADS_DATA: Product[] = [
     title: "BROCK B41 20 inch black alloy wheel",
     location: "Baki",
     date: "Bu gün 18:55",
-    image: "/images/products/thumb10.jpg",
+    images: [
+      "/images/products/thumb.jpg",
+      "/images/products/thumb2.jpg",
+      "/images/products/thumb3.jpg",
+    ],
   },
 ];

@@ -4,6 +4,6 @@ export interface Product {
   price: number;
   location: string;
   date: string;
-  image: string;
+  images: string[];
   isPremium?: boolean;
 }
