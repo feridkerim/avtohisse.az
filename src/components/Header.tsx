@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group-input";
 import { Input } from "@/components/ui/input";
-import { Menu, SearchIcon, Plus, User, Heart } from "lucide-react";
+import { SearchIcon, Plus, User, Heart } from "lucide-react";
 import Link from "next/link";
 import { CatalogMenu } from "./CatalogMenu";
 
