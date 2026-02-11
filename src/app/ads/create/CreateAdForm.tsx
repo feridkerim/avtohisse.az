@@ -1,9 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useForm, Resolver } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { adSchema, type AdFormValues } from "@/constants/schema";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,25 +11,63 @@ import { Textarea } from "@/components/ui/textarea";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
 
+interface AdFormValues {
+  vehicleType: string;
+  brand: string;
+  model: string;
+  year: string;
+  banType: string;
+  engine: string;
+  transmission: string;
+  category: string;
+  subCategory: string;
+  brandPart: string;
+  warranty: string;
+  dontKnowOem: boolean;
+  oemCode?: string;
+  condition: string;
+  price: string;
+  currency: string;
+  isNegotiable: boolean;
+  isBarter: boolean;
+  description?: string;
+  fullName: string;
+  address: string;
+  phone: string;
+}
+
 export default function CreateAdForm() {
   const [step, setStep] = useState(1);
-  const form = useForm<AdFormValues>({
-    resolver: zodResolver(adSchema) as unknown as Resolver<AdFormValues>,
-    defaultValues: {
-      currency: "AZN",
-      dontKnowOem: false,
-      isNegotiable: false,
-      isBarter: false,
-    },
-  });
-
   const {
     register,
     handleSubmit,
     setValue,
     watch,
     formState: { errors },
-  } = form;
+  } = useForm<AdFormValues>({
+    defaultValues: {
+      currency: "AZN",
+      dontKnowOem: false,
+      isNegotiable: false,
+      isBarter: false,
+      vehicleType: "",
+      brand: "",
+      model: "",
+      year: "",
+      banType: "",
+      engine: "",
+      transmission: "",
+      category: "",
+      subCategory: "",
+      brandPart: "",
+      warranty: "",
+      condition: "",
+      price: "",
+      fullName: "",
+      address: "",
+      phone: "",
+    },
+  });
 
   const onSubmit = (data: AdFormValues) => {
     console.log("Final Data:", data);
