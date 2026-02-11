@@ -186,7 +186,7 @@ export default function AdvancedFilterMobile({
             Sıfırla
           </Button>
           <Button
-            className="h-12 rounded-xl flex-[2] bg-red-600 hover:bg-red-700 text-white "
+            className="h-12 rounded-xl flex-2 bg-red-600 hover:bg-red-700 text-white "
             type="button"
             onClick={onApply}
           >

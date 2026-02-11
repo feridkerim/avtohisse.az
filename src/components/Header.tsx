@@ -38,7 +38,7 @@ export default function Header() {
             className="bg-[#e73121] hover:bg-red-700 text-white transition-colors duration-300"
             asChild
           >
-            <Link href="/elan-yerlesdir" className="flex items-center gap-2">
+            <Link href="/ads/create" className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
               <span>Elan yerləşdir</span>
             </Link>

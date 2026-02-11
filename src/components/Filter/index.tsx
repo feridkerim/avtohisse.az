@@ -110,17 +110,16 @@ export default function Filter() {
 
           <div className="flex items-center gap-2">
             <Button
-              className="w-32 bg-[#e73121] hover:bg-red-700"
+              className="w-32 bg-[#e73121] cursor-pointer hover:bg-red-700"
               onClick={handleSearch}
             >
               Axtar
             </Button>
             <Button
-              variant="outline"
               onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
               className={cn(
-                " px-4 gap-2 border-slate-200 transition-all",
-                isAdvancedOpen && "bg-slate-100 border-slate-400",
+                "cursor-pointer transition-all",
+                isAdvancedOpen && "",
               )}
             >
               <Icon icon="ph:sliders-horizontal-bold" className="text-xl" />

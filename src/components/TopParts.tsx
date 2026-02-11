@@ -29,7 +29,7 @@ const TopPartsData = [
 
 export default function TopParts() {
   return (
-    <div className="container mx-auto pt-10">
+    <div className="container pt-6">
       <h2 className="text-2xl font-semibold mb-6 font-sans">
         Məşhur kateqoriyalar
       </h2>

@@ -13,7 +13,7 @@ export function PremiumAds({ items }: AdsSectionProps) {
   if (items.length === 0) return null;
 
   return (
-    <section className="container mx-auto">
+    <section className="container">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold font-sans text-slate-900">
           Premium elanlar
@@ -38,7 +38,7 @@ export function PremiumAds({ items }: AdsSectionProps) {
 // Son Elanlar Bölməsi
 export function LatestAds({ items }: AdsSectionProps) {
   return (
-    <section className="container mx-auto">
+    <section className="container">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold font-sans">Son elanlar</h2>
         <Button size="sm" asChild>

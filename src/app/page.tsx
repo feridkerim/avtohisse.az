@@ -13,7 +13,7 @@ export default function Home() {
       <TopCategory />
       <Filter />
       <TopParts />
-      <div className="space-y-16 py-10 px-4 md:px-0">
+      <div className="space-y-8 py-10">
         <PremiumAds items={premiumAds} />
         <LatestAds items={latestAds} />
       </div>

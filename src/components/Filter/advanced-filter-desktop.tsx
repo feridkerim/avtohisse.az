@@ -88,7 +88,7 @@ export default function AdvancedFilterDesktop({
                   key={opt.value}
                   value={opt.value}
                   className={cn(
-                    "rounded-xl border border-slate-200 px-5 transition-all",
+                    "rounded-xl border cursor-pointer border-slate-200 px-5 transition-all",
                     "data-[state=on]:bg-red-600 data-[state=on]:text-white data-[state=on]:border-red-600",
                     "hover:bg-red-50 hover:text-red-600 hover:border-red-200",
                   )}

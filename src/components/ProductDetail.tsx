@@ -34,7 +34,7 @@ export function ProductDetail({ product }: ProductDetailProps) {
   };
 
   return (
-    <div className="container mx-auto py-10 px-4">
+    <div className="container py-10 px-4">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         <div className="space-y-4">
           <div className="relative aspect-square rounded-3xl border border-slate-100 overflow-hidden bg-white shadow-sm transition-all duration-500">
