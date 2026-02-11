@@ -10,7 +10,6 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
 
 interface AdFormValues {
   vehicleType: string;
@@ -105,7 +104,7 @@ export default function CreateAdForm() {
               <ToggleGroup
                 type="single"
                 onValueChange={(v) => setValue("vehicleType", v || "")}
-                className="justify-start gap-3"
+                className="justify-start"
               >
                 {["Minik", "Kommersiya", "Moto"].map((t) => (
                   <ToggleGroupItem
@@ -264,7 +263,7 @@ export default function CreateAdForm() {
               <ToggleGroup
                 type="single"
                 onValueChange={(v) => setValue("condition", v || "")}
-                className="justify-start gap-2"
+                className="justify-start"
               >
                 {["Teze", "Islenmis", "Orginal"].map((c) => (
                   <ToggleGroupItem

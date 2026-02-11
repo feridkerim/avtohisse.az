@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export default function TopCategory() {
   return (
-    <section className="top-category">
+    <section className="top-category hidden md:block">
       <div className="container">
         <div className="flex items-center flex-wrap mb-5 gap-2">
           <Button size="sm" className="text-xs" asChild>
