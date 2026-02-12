@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,33 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
+import { ComboboxWithIcon } from "@/components/ComboboxWithIcon";
+import {
+  MINIK_BRANDS,
+  KOMMERSIYA_BRANDS,
+  MOTO_BRANDS,
+  MINIK_MODELS,
+  KOMMERSIYA_MODELS,
+  MOTO_MODELS,
+  CATEGORIES,
+  SUBCATEGORIES,
+} from "@/data/vehicle-data";
+import { VehicleType } from "@/types/vehicle-data";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+import dynamic from "next/dynamic";
+const ImageUpload = dynamic(
+  () => import("@/components/ImageUpload").then((mod) => mod.ImageUpload),
+  {
+    ssr: false,
+  },
+);
 
 interface AdFormValues {
   vehicleType: string;
@@ -50,7 +77,7 @@ export default function CreateAdForm() {
       dontKnowOem: false,
       isNegotiable: false,
       isBarter: false,
-      vehicleType: "",
+      vehicleType: "minik",
       brand: "",
       model: "",
       year: "",
@@ -68,6 +95,59 @@ export default function CreateAdForm() {
       phone: "",
     },
   });
+
+  const vehicleType = watch("vehicleType") as VehicleType | "";
+  const selectedBrand = watch("brand");
+  const selectedCategory = watch("category");
+
+  // Növə görə markaları filtrlə
+  const availableBrands = useMemo(() => {
+    if (!vehicleType) return [];
+    if (vehicleType === "minik") return MINIK_BRANDS;
+    if (vehicleType === "kommersiya") return KOMMERSIYA_BRANDS;
+    if (vehicleType === "moto") return MOTO_BRANDS;
+    return [];
+  }, [vehicleType]);
+
+  // Seçilmiş markaya görə modelləri filtrlə
+  const availableModels = useMemo(() => {
+    if (!selectedBrand || !vehicleType) return [];
+
+    let allModels;
+    if (vehicleType === "minik") allModels = MINIK_MODELS;
+    else if (vehicleType === "kommersiya") allModels = KOMMERSIYA_MODELS;
+    else if (vehicleType === "moto") allModels = MOTO_MODELS;
+    else return [];
+
+    return allModels.filter((model) => model.brandValue === selectedBrand);
+  }, [selectedBrand, vehicleType]);
+
+  // Seçilmiş kateqoriyaya görə alt kateqoriyaları filtrlə
+  const availableSubCategories = useMemo(() => {
+    if (!selectedCategory) return [];
+    return SUBCATEGORIES.filter(
+      (sub) => sub.categoryValue === selectedCategory,
+    );
+  }, [selectedCategory]);
+
+  // Növ dəyişəndə marka və modeli sıfırla
+  const handleVehicleTypeChange = (newType: string) => {
+    setValue("vehicleType", newType);
+    setValue("brand", "");
+    setValue("model", "");
+  };
+
+  // Marka dəyişəndə modeli sıfırla
+  const handleBrandChange = (newBrand: string) => {
+    setValue("brand", newBrand);
+    setValue("model", "");
+  };
+
+  // Kateqoriya dəyişəndə alt kateqoriyanı sıfırla
+  const handleCategoryChange = (newCategory: string) => {
+    setValue("category", newCategory);
+    setValue("subCategory", "");
+  };
 
   const onSubmit = (data: AdFormValues) => {
     console.log("Final Data:", data);
@@ -92,7 +172,7 @@ export default function CreateAdForm() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* ADDIM 1: Avtomobil Texniki Göstəriciləri (1-12 bəndlər) */}
+        {/* ADDIM 1: Avtomobil Texniki Göstəriciləri */}
         {step === 1 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
             <h2 className="text-xl font-bold flex items-center gap-2">
@@ -100,17 +180,18 @@ export default function CreateAdForm() {
             </h2>
 
             <div className="space-y-3">
-              <Label className="font-bold">Növ</Label>
+              <Label className="font-semibold">Növ</Label>
               <ToggleGroup
                 type="single"
-                onValueChange={(v) => setValue("vehicleType", v || "")}
+                value={vehicleType}
+                onValueChange={handleVehicleTypeChange}
                 className="justify-start"
               >
                 {["Minik", "Kommersiya", "Moto"].map((t) => (
                   <ToggleGroupItem
                     key={t}
                     value={t.toLowerCase()}
-                    className="px-6 rounded-xl border"
+                    className="px-6 border cursor-pointer"
                   >
                     {t}
                   </ToggleGroupItem>
@@ -121,72 +202,116 @@ export default function CreateAdForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Marka</Label>
-                <select
-                  {...register("brand")}
-                  className="w-full h-11 rounded-xl border px-3"
-                >
-                  <option value="">Marka seçin</option>
-                  <option value="bmw">BMW</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label>Model</Label>
-                <select
-                  {...register("model")}
-                  className="w-full h-11 rounded-xl border px-3"
-                >
-                  <option value="">Model seçin</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label>İl</Label>
-                <select
-                  {...register("year")}
-                  className="w-full h-11 rounded-xl border px-3"
-                >
-                  <option value="">İl seçin</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label>Ban növü</Label>
-                <select
-                  {...register("banType")}
-                  className="w-full h-11 rounded-xl border px-3"
-                >
-                  <option value="">Seçin</option>
-                  <option value="sedan">Sedan</option>
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label>Mühərrik (L)</Label>
-                <Input
-                  {...register("engine")}
-                  placeholder="Məs: 2.0"
-                  className="rounded-xl h-11"
+                <ComboboxWithIcon
+                  data={availableBrands}
+                  value={selectedBrand}
+                  onChange={handleBrandChange}
+                  placeholder="Marka seçin"
+                  searchPlaceholder="Marka axtar..."
+                  showIcon={true}
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label>Model</Label>
+                <ComboboxWithIcon
+                  data={availableModels}
+                  value={watch("model")}
+                  onChange={(value) => setValue("model", value)}
+                  placeholder={
+                    selectedBrand ? "Model seçin" : "Əvvəl marka seçin"
+                  }
+                  searchPlaceholder="Model axtar..."
+                  showIcon={false}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>İl</Label>
+                <ComboboxWithIcon
+                  data={Array.from({ length: 30 }, (_, i) => ({
+                    value: (2025 - i).toString(),
+                    label: (2025 - i).toString(),
+                  }))}
+                  value={watch("year")}
+                  onChange={(value) => setValue("year", value)}
+                  placeholder="İl seçin"
+                  searchPlaceholder="İl axtar..."
+                  showIcon={false}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Ban növü</Label>
+                <Select
+                  value={watch("banType")}
+                  onValueChange={(value) => setValue("banType", value)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sedan">Sedan</SelectItem>
+                    <SelectItem value="suv">SUV</SelectItem>
+                    <SelectItem value="hatchback">Hatchback</SelectItem>
+                    <SelectItem value="universal">Universal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Mühərrik (L)</Label>
+                <Select
+                  value={watch("engine")}
+                  onValueChange={(value) => setValue("engine", value)}
+                >
+                  <SelectTrigger className="w-full ">
+                    <SelectValue placeholder="Seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1.0">1.0</SelectItem>
+                    <SelectItem value="1.2">1.2</SelectItem>
+                    <SelectItem value="1.4">1.4</SelectItem>
+                    <SelectItem value="1.6">1.6</SelectItem>
+                    <SelectItem value="1.8">1.8</SelectItem>
+                    <SelectItem value="2.0">2.0</SelectItem>
+                    <SelectItem value="2.5">2.5</SelectItem>
+                    <SelectItem value="3.0">3.0</SelectItem>
+                    <SelectItem value="3.5">3.5</SelectItem>
+                    <SelectItem value="4.0">4.0</SelectItem>
+                    <SelectItem value="5.0">5.0</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-2">
                 <Label>Sürətlər qutusu</Label>
-                <select
-                  {...register("transmission")}
-                  className="w-full h-11 rounded-xl border px-3"
+                <Select
+                  value={watch("transmission")}
+                  onValueChange={(value) => setValue("transmission", value)}
                 >
-                  <option value="auto">Avtomat</option>
-                  <option value="manual">Mexanika</option>
-                </select>
+                  <SelectTrigger className="w-full ">
+                    <SelectValue placeholder="Seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">Avtomat</SelectItem>
+                    <SelectItem value="manual">Mexanika</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
+
             <Button
               type="button"
               onClick={nextStep}
-              className="w-full bg-slate-900 h-12 rounded-xl"
+              className="w-full cursor-pointer"
             >
               Növbəti
             </Button>
           </div>
         )}
 
-        {/* ADDIM 2: Detal və Kateqoriya (13-16, 18 bəndlər) */}
+        {/* ADDIM 2: Detal və Kateqoriya */}
         {step === 2 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
             <h2 className="text-xl font-bold flex items-center gap-2">
@@ -196,41 +321,60 @@ export default function CreateAdForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Kateqoriya</Label>
-                <select
-                  {...register("category")}
-                  className="w-full h-11 rounded-xl border px-3"
-                >
-                  <option value="">Seçin</option>
-                  <option value="cooling">Soyutma sistemi</option>
-                </select>
+                <ComboboxWithIcon
+                  data={CATEGORIES}
+                  value={selectedCategory}
+                  onChange={handleCategoryChange}
+                  placeholder="Kateqoriya seçin"
+                  searchPlaceholder="Kateqoriya axtar..."
+                  showIcon={true}
+                />
               </div>
+
               <div className="space-y-2">
                 <Label>Alt Kateqoriya</Label>
-                <select
-                  {...register("subCategory")}
-                  className="w-full h-11 rounded-xl border px-3"
-                >
-                  <option value="">Seçin</option>
-                  <option value="pump">Su pompası</option>
-                </select>
+                <ComboboxWithIcon
+                  data={availableSubCategories}
+                  value={watch("subCategory")}
+                  onChange={(value) => setValue("subCategory", value)}
+                  placeholder={
+                    selectedCategory
+                      ? "Alt kateqoriya seçin"
+                      : "Əvvəl kateqoriya seçin"
+                  }
+                  searchPlaceholder="Alt kateqoriya axtar..."
+                  showIcon={false}
+                />
               </div>
+
               <div className="space-y-2">
                 <Label>Brend (Hissənin)</Label>
                 <Input
                   {...register("brandPart")}
                   placeholder="Məs: Febi"
-                  className="rounded-xl h-11"
+                  className="focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
               </div>
+
               <div className="space-y-2">
                 <Label>Zəmanət</Label>
-                <select
-                  {...register("warranty")}
-                  className="w-full h-11 rounded-xl border px-3"
+                <Select
+                  value={watch("warranty")}
+                  onValueChange={(value) => setValue("warranty", value)}
                 >
-                  <option value="3days">3 gün</option>
-                  <option value="none">Yoxdur</option>
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="3days">3 gün</SelectItem>
+                    <SelectItem value="1week">1 həftə</SelectItem>
+                    <SelectItem value="1month">1 ay</SelectItem>
+                    <SelectItem value="3months">3 ay</SelectItem>
+                    <SelectItem value="6months">6 ay</SelectItem>
+                    <SelectItem value="1year">1 il</SelectItem>
+                    <SelectItem value="none">Yoxdur</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -239,12 +383,13 @@ export default function CreateAdForm() {
                 <Label className="font-bold">OEM Kodu (VİN Kod)</Label>
                 <div className="flex items-center gap-2">
                   <Checkbox
+                    className="bg-white"
                     id="no-oem"
                     onCheckedChange={(v) => setValue("dontKnowOem", Boolean(v))}
                   />
                   <label
                     htmlFor="no-oem"
-                    className="text-xs font-medium cursor-pointer"
+                    className="text-xs  font-medium cursor-pointer"
                   >
                     Bilmirəm
                   </label>
@@ -253,7 +398,7 @@ export default function CreateAdForm() {
               <Input
                 disabled={watch("dontKnowOem")}
                 placeholder="Məs: 11517527910"
-                className="h-12 bg-white rounded-xl"
+                className="h-12 bg-white rounded-xl focus-visible:ring-0 focus-visible:ring-offset-0"
                 {...register("oemCode")}
               />
             </div>
@@ -282,59 +427,47 @@ export default function CreateAdForm() {
                 type="button"
                 onClick={prevStep}
                 variant="outline"
-                className="flex-1 h-12 rounded-xl"
+                className="flex-1"
               >
                 Geri
               </Button>
-              <Button
-                type="button"
-                onClick={nextStep}
-                className="flex-[2] bg-slate-900 h-12 rounded-xl"
-              >
+              <Button type="button" onClick={nextStep} className="flex-2">
                 Növbəti
               </Button>
             </div>
           </div>
         )}
 
-        {/* ADDIM 3: Media, Qiymət, Təsvir (17, 19-22 bəndlər) */}
+        {/* ADDIM 3: Media, Qiymət, Təsvir */}
         {step === 3 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
             <h2 className="text-xl font-bold flex items-center gap-2">
               <Icon icon="ph:image-bold" /> 3. Media və Qiymət
             </h2>
 
-            <div className="space-y-3">
-              <Label className="font-bold text-orange-600 flex items-center gap-1">
-                <Icon icon="ph:info-bold" /> Foto İpucu
-              </Label>
-              <p className="text-xs text-slate-500 bg-orange-50 p-3 rounded-xl border border-orange-100">
-                Hissənin hər iki tərəfini və üzərindəki <b>kodu</b> mütləq
-                çəkin.
-              </p>
-              <div className="h-32 border-2 border-dashed rounded-2xl flex items-center justify-center border-slate-200 hover:border-red-500 cursor-pointer transition-all">
-                <Icon
-                  icon="ph:camera-plus-bold"
-                  className="text-3xl text-slate-300"
-                />
-              </div>
-            </div>
+            <ImageUpload />
 
             <div className="space-y-3">
               <Label className="font-bold">Qiymət</Label>
               <div className="flex gap-2">
                 <Input
                   placeholder="0.00"
-                  className="h-12 rounded-xl flex-1"
+                  className=" flex-1 focus-visible:ring-0 focus-visible:ring-offset-0"
                   {...register("price")}
                 />
-                <select
-                  className="w-24 h-12 rounded-xl border px-2 font-bold"
-                  {...register("currency")}
+                <Select
+                  value={watch("currency")}
+                  onValueChange={(value) => setValue("currency", value)}
                 >
-                  <option value="AZN">AZN</option>
-                  <option value="USD">USD</option>
-                </select>
+                  <SelectTrigger className="w-24 font-semibold">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="AZN">AZN</SelectItem>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="EUR">EUR</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex flex-col gap-2 pt-2">
                 <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -359,7 +492,7 @@ export default function CreateAdForm() {
               <Textarea
                 {...register("description")}
                 placeholder="Məsələn: Pompa yenidir, qutusundadır."
-                className="rounded-xl min-h-[100px]"
+                className="rounded-xl min-h-25"
               />
             </div>
 
@@ -368,22 +501,18 @@ export default function CreateAdForm() {
                 type="button"
                 onClick={prevStep}
                 variant="outline"
-                className="flex-1 h-12 rounded-xl"
+                className="flex-1"
               >
                 Geri
               </Button>
-              <Button
-                type="button"
-                onClick={nextStep}
-                className="flex-[2] bg-slate-900 h-12 rounded-xl"
-              >
+              <Button type="button" onClick={nextStep} className="flex-2">
                 Növbəti
               </Button>
             </div>
           </div>
         )}
 
-        {/* ADDIM 4: Əlaqə və Təsdiq (23-25 bəndlər) */}
+        {/* ADDIM 4: Əlaqə və Təsdiq */}
         {step === 4 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
             <h2 className="text-xl font-bold flex items-center gap-2">
@@ -425,13 +554,13 @@ export default function CreateAdForm() {
                 type="button"
                 onClick={prevStep}
                 variant="outline"
-                className="flex-1 h-12 rounded-xl"
+                className="flex-1"
               >
                 Geri
               </Button>
               <Button
                 type="submit"
-                className="flex-[2] bg-red-600 hover:bg-red-700 h-12 rounded-xl font-bold text-white shadow-lg shadow-red-100"
+                className="flex-2 bg-[#e73121] hover:bg-red-700  font-semibold text-white shadow-lg shadow-red-100"
               >
                 Davam et
               </Button>
