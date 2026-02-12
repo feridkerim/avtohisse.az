@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { Icon } from "@iconify/react";
 import { cn } from "@/lib/utils";
@@ -93,7 +93,7 @@ function SortablePhoto({
       />
 
       {/* İdarəetmə Düymələri */}
-      <div className="absolute top-1 right-1 flex gap-1 z-30 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-1 right-1 flex gap-1 z-30 transition-opacity">
         <button
           type="button"
           onClick={() => onRotate(image.id)}
