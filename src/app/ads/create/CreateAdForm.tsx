@@ -20,9 +20,8 @@ import {
   MINIK_MODELS,
   KOMMERSIYA_MODELS,
   MOTO_MODELS,
-  CATEGORIES,
-  SUBCATEGORIES,
 } from "@/data/vehicle-data";
+import { CATEGORIES } from "@/constants/menu";
 import { VehicleType } from "@/types/vehicle-data";
 import {
   Select,
@@ -153,10 +152,24 @@ export default function CreateAdForm() {
   // Seçilmiş kateqoriyaya görə alt kateqoriyaları filtrlə
   const availableSubCategories = useMemo(() => {
     if (!selectedCategory) return [];
-    return SUBCATEGORIES.filter(
-      (sub) => sub.categoryValue === selectedCategory,
-    );
+
+    const categoryData = CATEGORIES.find((cat) => cat.id === selectedCategory);
+
+    if (!categoryData || !categoryData.subCategories) return [];
+
+    return categoryData.subCategories.map((subName) => ({
+      value: subName.toLowerCase().trim().replace(/\s+/g, "-"),
+      label: subName,
+    }));
   }, [selectedCategory]);
+
+  const categoryOptions = useMemo(() => {
+    return CATEGORIES.map((cat) => ({
+      value: cat.id, // 'fasteners' -> value
+      label: cat.name, // 'Fasteners' -> label
+      icon: cat.img, // img -> icon (əgər şəkliniz varsa)
+    }));
+  }, []);
 
   // Dəyişiklik hadisələri
   const handleVehicleTypeChange = (newType: string) => {
@@ -467,7 +480,7 @@ export default function CreateAdForm() {
               <div className="space-y-2">
                 <Label>Kateqoriya</Label>
                 <ComboboxWithIcon
-                  data={CATEGORIES}
+                  data={categoryOptions}
                   value={selectedCategory}
                   onChange={handleCategoryChange}
                   placeholder="Kateqoriya seçin"

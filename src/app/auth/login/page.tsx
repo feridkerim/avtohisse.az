@@ -54,7 +54,9 @@ export default function LoginPage() {
             <div className="mx-auto w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mb-2">
               <Icon
                 icon={
-                  isCodeSent ? "ph:lock-key-open-bold" : "ph:phone-lock-bold"
+                  isCodeSent
+                    ? "ph:lock-key-open-bold"
+                    : "fluent:phone-lock-20-regular"
                 }
                 className="text-2xl text-[#e73121]"
               />
@@ -109,7 +111,7 @@ export default function LoginPage() {
 
                 <Button
                   type="submit"
-                  className="w-full h-12 text-base bg-[#e73121] cursor-pointer hover:bg-red-700 font-bold shadow-lg shadow-red-100 transition-all active:scale-[0.98]"
+                  className="w-full h-12 text-base  cursor-pointer font-bold  shadow-xl transition-all active:scale-[0.98]"
                 >
                   Kod göndər
                 </Button>
@@ -161,7 +163,7 @@ export default function LoginPage() {
                           <InputOTPGroup>
                             <InputOTPSlot
                               index={0}
-                              className="h-12 w-10 text-lg sm:h-14 sm:w-12 sm:text-xl border-slate-200 bg-slate-50"
+                              className="h-12  w-10 text-lg sm:h-14 sm:w-12 sm:text-xl border-slate-200 bg-slate-50"
                             />
                             <InputOTPSlot
                               index={1}
@@ -173,12 +175,12 @@ export default function LoginPage() {
                             />
                           </InputOTPGroup>
 
-                          <InputOTPSeparator className="mx-2 text-slate-300" />
+                          <InputOTPSeparator className=" text-slate-300" />
 
-                          <InputOTPGroup className="gap-1">
+                          <InputOTPGroup>
                             <InputOTPSlot
                               index={3}
-                              className="h-12 w-10 text-lg sm:h-14 sm:w-12 sm:text-xl border-slate-200 bg-slate-50"
+                              className="h-12  w-10 text-lg sm:h-14 sm:w-12 sm:text-xl border-slate-200 bg-slate-50"
                             />
                             <InputOTPSlot
                               index={4}
@@ -213,7 +215,7 @@ export default function LoginPage() {
 
                 <Button
                   type="submit"
-                  className="w-full h-12 text-base bg-slate-900 hover:bg-black font-semibold text-white shadow-xl transition-all active:scale-[0.98]"
+                  className="w-full h-12 text-base bg-[#e73121] cursor-pointer hover:bg-red-700 font-semibold text-white shadow-red-100 transition-all active:scale-[0.98]"
                 >
                   Təsdiqlə və Giriş et
                 </Button>
