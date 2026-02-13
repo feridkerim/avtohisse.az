@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { ComboboxWithIcon } from "@/components/ComboboxWithIcon";
 import { Icon } from "@iconify/react";
-import { AdFormValues } from "@/lib/schemas/ad-schema";
+import { AdFormValues } from "@/constants/ad-schema";
 import {
   MINIK_BRANDS,
   KOMMERSIYA_BRANDS,
