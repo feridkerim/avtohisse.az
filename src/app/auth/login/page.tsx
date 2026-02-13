@@ -47,9 +47,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-8">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 py-8">
       <div className="container max-w-md">
-        <Card className="w-sm mx-auto shadow-xl border-slate-200">
+        <Card className="md:w-sm w-auto mx-auto shadow-xl border-slate-200">
           <CardHeader className="text-center space-y-2 pb-6">
             <div className="mx-auto w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mb-2">
               <Icon
