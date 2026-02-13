@@ -46,7 +46,7 @@ export const Step1Vehicle: React.FC<StepProps> = ({ form, onNext }) => {
   }, [vehicleType]);
 
   const availableModels = useMemo(() => {
-    let allModels = [];
+    let allModels: any[] = [];
     if (vehicleType === "minik") allModels = MINIK_MODELS;
     else if (vehicleType === "kommersiya") allModels = KOMMERSIYA_MODELS;
     else if (vehicleType === "moto") allModels = MOTO_MODELS;
