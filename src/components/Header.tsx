@@ -29,7 +29,7 @@ export default function Header() {
             <Heart />
           </Link>
           <Button asChild>
-            <Link href="/login">
+            <Link href="/auth/login">
               <User />
               <span>Daxil ol</span>
             </Link>

@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod"; // YENİ
+import * as z from "zod"; // YENİ
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,54 +31,79 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
+import { PatternFormat } from "react-number-format";
 import dynamic from "next/dynamic";
+
 const ImageUpload = dynamic(
   () => import("@/components/ImageUpload").then((mod) => mod.ImageUpload),
-  {
-    ssr: false,
-  },
+  { ssr: false },
 );
 
-interface AdFormValues {
-  vehicleType: string;
-  brand: string;
-  model: string;
-  year: string;
-  banType: string;
-  engine: string;
-  transmission: string;
-  category: string;
-  subCategory: string;
-  brandPart: string;
-  warranty: string;
-  dontKnowOem: boolean;
-  oemCode?: string;
-  condition: string;
-  price: string;
-  currency: string;
-  isNegotiable: boolean;
-  isBarter: boolean;
-  description?: string;
-  fullName: string;
-  address: string;
-  phone: string;
-}
+// --- 1. ZOD SCHEMA (Validasiya Qaydaları) ---
+const adFormSchema = z
+  .object({
+    vehicleType: z.string().min(1, "Növ seçilməlidir"),
+    brand: z.string().min(1, "Marka seçilməlidir"),
+    model: z.string().min(1, "Model seçilməlidir"),
+    year: z.string().min(1, "İl seçilməlidir"),
+    banType: z.string().min(1, "Ban növü seçilməlidir"),
+    engine: z.string().min(1, "Mühərrik seçilməlidir"),
+    transmission: z.string().min(1, "Sürətlər qutusu seçilməlidir"),
+
+    category: z.string().min(1, "Kateqoriya seçilməlidir"),
+    subCategory: z.string().min(1, "Alt kateqoriya seçilməlidir"),
+    brandPart: z.string().optional(),
+    warranty: z.string().min(1, "Zəmanət seçimi edilməlidir"),
+    dontKnowOem: z.boolean().default(false),
+    oemCode: z.string().optional(),
+    condition: z.string().min(1, "Vəziyyət seçilməlidir"),
+
+    price: z.string().min(1, "Qiymət daxil edilməlidir"),
+    currency: z.string().default("AZN"),
+    isNegotiable: z.boolean().default(false),
+    isBarter: z.boolean().default(false),
+    delivery: z.boolean().default(false),
+    description: z.string().optional(),
+
+    fullName: z.string().min(2, "Adınız qeyd olunmalıdır"),
+    address: z.string().min(2, "Ünvan qeyd olunmalıdır"),
+    phone: z.string().min(10, "Mobil nömrə tam daxil edilməlidir"),
+    email: z.string().email("Düzgün email daxil edin").min(1, "Email vacibdir"),
+  })
+  .superRefine((data, ctx) => {
+    // Əgər "Bilmirəm" seçilməyibsə, OEM kodu məcburidir
+    if (!data.dontKnowOem && (!data.oemCode || data.oemCode.length < 1)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["oemCode"],
+        message: "OEM kodu daxil edin və ya 'Bilmirəm' seçin",
+      });
+    }
+  });
+
+type AdFormValues = z.infer<typeof adFormSchema>;
 
 export default function CreateAdForm() {
   const [step, setStep] = useState(1);
+  const currentYear = new Date().getFullYear(); // Cari ili dinamik alırıq
+
   const {
     register,
     handleSubmit,
     setValue,
     watch,
+    trigger, // Validasiya üçün vacibdir
+    control,
     formState: { errors },
   } = useForm<AdFormValues>({
+    resolver: zodResolver(adFormSchema),
+    mode: "onChange",
     defaultValues: {
       currency: "AZN",
       dontKnowOem: false,
       isNegotiable: false,
       isBarter: false,
+      delivery: false,
       vehicleType: "minik",
       brand: "",
       model: "",
@@ -90,15 +117,18 @@ export default function CreateAdForm() {
       warranty: "",
       condition: "",
       price: "",
+      oemCode: "",
       fullName: "",
       address: "",
       phone: "",
+      email: "",
     },
   });
 
   const vehicleType = watch("vehicleType") as VehicleType | "";
   const selectedBrand = watch("brand");
   const selectedCategory = watch("category");
+  const dontKnowOem = watch("dontKnowOem");
 
   // Növə görə markaları filtrlə
   const availableBrands = useMemo(() => {
@@ -112,13 +142,11 @@ export default function CreateAdForm() {
   // Seçilmiş markaya görə modelləri filtrlə
   const availableModels = useMemo(() => {
     if (!selectedBrand || !vehicleType) return [];
-
     let allModels;
     if (vehicleType === "minik") allModels = MINIK_MODELS;
     else if (vehicleType === "kommersiya") allModels = KOMMERSIYA_MODELS;
     else if (vehicleType === "moto") allModels = MOTO_MODELS;
     else return [];
-
     return allModels.filter((model) => model.brandValue === selectedBrand);
   }, [selectedBrand, vehicleType]);
 
@@ -130,41 +158,83 @@ export default function CreateAdForm() {
     );
   }, [selectedCategory]);
 
-  // Növ dəyişəndə marka və modeli sıfırla
+  // Dəyişiklik hadisələri
   const handleVehicleTypeChange = (newType: string) => {
     setValue("vehicleType", newType);
     setValue("brand", "");
     setValue("model", "");
   };
 
-  // Marka dəyişəndə modeli sıfırla
   const handleBrandChange = (newBrand: string) => {
     setValue("brand", newBrand);
     setValue("model", "");
   };
 
-  // Kateqoriya dəyişəndə alt kateqoriyanı sıfırla
   const handleCategoryChange = (newCategory: string) => {
     setValue("category", newCategory);
     setValue("subCategory", "");
   };
 
-  const onSubmit = (data: AdFormValues) => {
-    console.log("Final Data:", data);
+  // Validasiya ilə Növbəti Addıma Keçid
+  const nextStep = async () => {
+    let fieldsToValidate: (keyof AdFormValues)[] = [];
+
+    switch (step) {
+      case 1:
+        fieldsToValidate = [
+          "vehicleType",
+          "brand",
+          "model",
+          "year",
+          "banType",
+          "engine",
+          "transmission",
+        ];
+        break;
+      case 2:
+        fieldsToValidate = [
+          "category",
+          "subCategory",
+          "brandPart",
+          "warranty",
+          "condition",
+          "oemCode", // Schema-da superRefine ilə yoxlanılır
+        ];
+        break;
+      case 3:
+        fieldsToValidate = ["price", "currency", "description"];
+        break;
+      default:
+        break;
+    }
+
+    const isValid = await trigger(fieldsToValidate);
+    if (isValid) {
+      setStep((s) => s + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
-  const nextStep = () => setStep((s) => s + 1);
-  const prevStep = () => setStep((s) => s - 1);
+  const prevStep = () => {
+    setStep((s) => s - 1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const onSubmit = (data: AdFormValues) => {
+    console.log("Form Successfully Submitted:", data);
+    // Burada API sorğusu göndərə bilərsiniz
+    alert("Elan uğurla yaradıldı! (Konsola baxın)");
+  };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white rounded-[2.5rem] border shadow-sm">
+    <div className="max-w-3xl mx-auto p-6 bg-white rounded-xl border shadow-sm">
       {/* Step Indicator */}
       <div className="flex gap-2 mb-8">
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
             className={cn(
-              "h-1.5 flex-1 rounded-full",
+              "h-1.5 flex-1 rounded-full transition-colors duration-300",
               i <= step ? "bg-red-600" : "bg-slate-100",
             )}
           />
@@ -184,19 +254,24 @@ export default function CreateAdForm() {
               <ToggleGroup
                 type="single"
                 value={vehicleType}
-                onValueChange={handleVehicleTypeChange}
+                onValueChange={(val) => val && handleVehicleTypeChange(val)}
                 className="justify-start"
               >
                 {["Minik", "Kommersiya", "Moto"].map((t) => (
                   <ToggleGroupItem
                     key={t}
                     value={t.toLowerCase()}
-                    className="px-6 border cursor-pointer"
+                    className="px-6 border cursor-pointer data-[state=on]:bg-red-50 data-[state=on]:text-red-600 data-[state=on]:border-red-200"
                   >
                     {t}
                   </ToggleGroupItem>
                 ))}
               </ToggleGroup>
+              {errors.vehicleType && (
+                <p className="text-red-500 text-xs">
+                  {errors.vehicleType.message}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -209,7 +284,14 @@ export default function CreateAdForm() {
                   placeholder="Marka seçin"
                   searchPlaceholder="Marka axtar..."
                   showIcon={true}
+                  className={cn(
+                    errors.brand &&
+                      "border-red-500 focus:ring-red-500 hover:bg-white text-red-900",
+                  )}
                 />
+                {errors.brand && (
+                  <p className="text-red-500 text-xs">{errors.brand.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -217,37 +299,63 @@ export default function CreateAdForm() {
                 <ComboboxWithIcon
                   data={availableModels}
                   value={watch("model")}
-                  onChange={(value) => setValue("model", value)}
+                  onChange={(value) =>
+                    setValue("model", value, { shouldValidate: true })
+                  }
+                  className={cn(
+                    errors.brand &&
+                      "border-red-500 focus:ring-red-500 hover:bg-white text-red-900",
+                  )}
                   placeholder={
                     selectedBrand ? "Model seçin" : "Əvvəl marka seçin"
                   }
                   searchPlaceholder="Model axtar..."
                   showIcon={false}
                 />
+                {errors.model && (
+                  <p className="text-red-500 text-xs">{errors.model.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label>İl</Label>
                 <ComboboxWithIcon
                   data={Array.from({ length: 30 }, (_, i) => ({
-                    value: (2025 - i).toString(),
-                    label: (2025 - i).toString(),
+                    value: (currentYear - i).toString(),
+                    label: (currentYear - i).toString(),
                   }))}
                   value={watch("year")}
-                  onChange={(value) => setValue("year", value)}
+                  onChange={(value) =>
+                    setValue("year", value, { shouldValidate: true })
+                  }
                   placeholder="İl seçin"
                   searchPlaceholder="İl axtar..."
                   showIcon={false}
+                  className={cn(
+                    errors.model &&
+                      "border-red-500 focus:ring-red-500 hover:bg-white text-red-900",
+                  )}
                 />
+                {errors.year && (
+                  <p className="text-red-500 text-xs">{errors.year.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label>Ban növü</Label>
                 <Select
                   value={watch("banType")}
-                  onValueChange={(value) => setValue("banType", value)}
+                  onValueChange={(value) =>
+                    setValue("banType", value, { shouldValidate: true })
+                  }
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger
+                    className={cn(
+                      "w-full",
+                      errors.banType &&
+                        "border-red-500 focus:ring-red-500 hover:bg-white text-red-900",
+                    )}
+                  >
                     <SelectValue placeholder="Seçin" />
                   </SelectTrigger>
                   <SelectContent>
@@ -257,40 +365,72 @@ export default function CreateAdForm() {
                     <SelectItem value="universal">Universal</SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.banType && (
+                  <p className="text-red-500 text-xs">
+                    {errors.banType.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label>Mühərrik (L)</Label>
                 <Select
                   value={watch("engine")}
-                  onValueChange={(value) => setValue("engine", value)}
+                  onValueChange={(value) =>
+                    setValue("engine", value, { shouldValidate: true })
+                  }
                 >
-                  <SelectTrigger className="w-full ">
+                  <SelectTrigger
+                    className={cn(
+                      "w-full",
+                      errors.engine &&
+                        "border-red-500 focus:ring-red-500 hover:bg-white text-red-900",
+                    )}
+                  >
                     <SelectValue placeholder="Seçin" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1.0">1.0</SelectItem>
-                    <SelectItem value="1.2">1.2</SelectItem>
-                    <SelectItem value="1.4">1.4</SelectItem>
-                    <SelectItem value="1.6">1.6</SelectItem>
-                    <SelectItem value="1.8">1.8</SelectItem>
-                    <SelectItem value="2.0">2.0</SelectItem>
-                    <SelectItem value="2.5">2.5</SelectItem>
-                    <SelectItem value="3.0">3.0</SelectItem>
-                    <SelectItem value="3.5">3.5</SelectItem>
-                    <SelectItem value="4.0">4.0</SelectItem>
-                    <SelectItem value="5.0">5.0</SelectItem>
+                    {[
+                      "1.0",
+                      "1.2",
+                      "1.4",
+                      "1.6",
+                      "1.8",
+                      "2.0",
+                      "2.5",
+                      "3.0",
+                      "3.5",
+                      "4.0",
+                      "5.0",
+                    ].map((v) => (
+                      <SelectItem key={v} value={v}>
+                        {v}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                {errors.engine && (
+                  <p className="text-red-500 text-xs">
+                    {errors.engine.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label>Sürətlər qutusu</Label>
                 <Select
                   value={watch("transmission")}
-                  onValueChange={(value) => setValue("transmission", value)}
+                  onValueChange={(value) =>
+                    setValue("transmission", value, { shouldValidate: true })
+                  }
                 >
-                  <SelectTrigger className="w-full ">
+                  <SelectTrigger
+                    className={cn(
+                      "w-full",
+                      errors.transmission &&
+                        "border-red-500 focus:ring-red-500 hover:bg-white text-red-900",
+                    )}
+                  >
                     <SelectValue placeholder="Seçin" />
                   </SelectTrigger>
                   <SelectContent>
@@ -298,13 +438,18 @@ export default function CreateAdForm() {
                     <SelectItem value="manual">Mexanika</SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.transmission && (
+                  <p className="text-red-500 text-xs">
+                    {errors.transmission.message}
+                  </p>
+                )}
               </div>
             </div>
 
             <Button
               type="button"
               onClick={nextStep}
-              className="w-full cursor-pointer"
+              className="w-full cursor-pointer bg-red-600 hover:bg-red-700 text-white"
             >
               Növbəti
             </Button>
@@ -328,7 +473,16 @@ export default function CreateAdForm() {
                   placeholder="Kateqoriya seçin"
                   searchPlaceholder="Kateqoriya axtar..."
                   showIcon={true}
+                  className={cn(
+                    errors.category &&
+                      "border-red-500 focus:ring-red-500 hover:bg-white text-red-900",
+                  )}
                 />
+                {errors.category && (
+                  <p className="text-red-500 text-xs">
+                    {errors.category.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -336,7 +490,9 @@ export default function CreateAdForm() {
                 <ComboboxWithIcon
                   data={availableSubCategories}
                   value={watch("subCategory")}
-                  onChange={(value) => setValue("subCategory", value)}
+                  onChange={(value) =>
+                    setValue("subCategory", value, { shouldValidate: true })
+                  }
                   placeholder={
                     selectedCategory
                       ? "Alt kateqoriya seçin"
@@ -344,7 +500,16 @@ export default function CreateAdForm() {
                   }
                   searchPlaceholder="Alt kateqoriya axtar..."
                   showIcon={false}
+                  className={cn(
+                    errors.subCategory &&
+                      "border-red-500 focus:ring-red-500 hover:bg-white text-red-900",
+                  )}
                 />
+                {errors.subCategory && (
+                  <p className="text-red-500 text-xs">
+                    {errors.subCategory.message}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -360,9 +525,17 @@ export default function CreateAdForm() {
                 <Label>Zəmanət</Label>
                 <Select
                   value={watch("warranty")}
-                  onValueChange={(value) => setValue("warranty", value)}
+                  onValueChange={(value) =>
+                    setValue("warranty", value, { shouldValidate: true })
+                  }
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger
+                    className={cn(
+                      "w-full",
+                      errors.subCategory &&
+                        "border-red-500 focus:ring-red-500 hover:bg-white text-red-900",
+                    )}
+                  >
                     <SelectValue placeholder="Seçin" />
                   </SelectTrigger>
                   <SelectContent>
@@ -375,6 +548,11 @@ export default function CreateAdForm() {
                     <SelectItem value="none">Yoxdur</SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.warranty && (
+                  <p className="text-red-500 text-xs">
+                    {errors.warranty.message}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -385,41 +563,67 @@ export default function CreateAdForm() {
                   <Checkbox
                     className="bg-white"
                     id="no-oem"
-                    onCheckedChange={(v) => setValue("dontKnowOem", Boolean(v))}
+                    checked={dontKnowOem}
+                    onCheckedChange={(v) => {
+                      const isChecked = Boolean(v);
+                      setValue("dontKnowOem", isChecked);
+                      if (isChecked) {
+                        setValue("oemCode", ""); // Təmizlə
+                        trigger("oemCode"); // Validasiyanı yenilə
+                      }
+                    }}
                   />
                   <label
                     htmlFor="no-oem"
-                    className="text-xs  font-medium cursor-pointer"
+                    className="text-xs font-medium cursor-pointer"
                   >
                     Bilmirəm
                   </label>
                 </div>
               </div>
               <Input
-                disabled={watch("dontKnowOem")}
+                disabled={dontKnowOem}
                 placeholder="Məs: 11517527910"
-                className="h-12 bg-white rounded-xl focus-visible:ring-0 focus-visible:ring-offset-0"
+                className={cn(
+                  "h-12 bg-white rounded-xl focus-visible:ring-0 focus-visible:ring-offset-0",
+                  errors.oemCode && "border-red-500 focus-visible:ring-red-500",
+                )}
                 {...register("oemCode")}
               />
+              {errors.oemCode && (
+                <p className="text-red-500 text-xs">{errors.oemCode.message}</p>
+              )}
             </div>
 
             <div className="space-y-3">
               <Label className="font-bold">Vəziyyəti</Label>
               <ToggleGroup
                 type="single"
-                onValueChange={(v) => setValue("condition", v || "")}
+                value={watch("condition")}
+                onValueChange={(v) =>
+                  v && setValue("condition", v, { shouldValidate: true })
+                }
                 className="justify-start"
               >
                 {["Teze", "Islenmis", "Orginal"].map((c) => (
                   <ToggleGroupItem
                     key={c}
                     value={c.toLowerCase()}
-                    className="px-5 rounded-xl border"
+                    className={cn(
+                      "px-5 rounded-xl border data-[state=on]:bg-red-50 data-[state=on]:text-red-600 data-[state=on]:border-red-200",
+                      errors.condition &&
+                        "border-red-500 focus:ring-red-500 hover:bg-white text-red-900",
+                    )}
                   >
                     {c}
                   </ToggleGroupItem>
                 ))}
               </ToggleGroup>
+              {errors.condition && (
+                <p className="text-red-500 text-xs">
+                  {errors.condition.message}
+                </p>
+              )}
             </div>
 
             <div className="flex gap-3">
@@ -431,7 +635,11 @@ export default function CreateAdForm() {
               >
                 Geri
               </Button>
-              <Button type="button" onClick={nextStep} className="flex-2">
+              <Button
+                type="button"
+                onClick={nextStep}
+                className="flex-[2] bg-red-600 hover:bg-red-700 text-white"
+              >
                 Növbəti
               </Button>
             </div>
@@ -451,8 +659,9 @@ export default function CreateAdForm() {
               <Label className="font-bold">Qiymət</Label>
               <div className="flex gap-2">
                 <Input
+                  type="number"
                   placeholder="0.00"
-                  className=" flex-1 focus-visible:ring-0 focus-visible:ring-offset-0"
+                  className="flex-1 focus-visible:ring-0 focus-visible:ring-offset-0"
                   {...register("price")}
                 />
                 <Select
@@ -469,20 +678,30 @@ export default function CreateAdForm() {
                   </SelectContent>
                 </Select>
               </div>
+              {errors.price && (
+                <p className="text-red-500 text-xs">{errors.price.message}</p>
+              )}
+
               <div className="flex flex-col gap-2 pt-2">
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
                   <Checkbox
                     onCheckedChange={(v) =>
                       setValue("isNegotiable", Boolean(v))
                     }
-                  />{" "}
+                  />
                   Razılaşma yolu ilə
                 </label>
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
                   <Checkbox
                     onCheckedChange={(v) => setValue("isBarter", Boolean(v))}
-                  />{" "}
+                  />
                   Barter mümkündür
+                </label>
+                <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                  <Checkbox
+                    onCheckedChange={(v) => setValue("delivery", Boolean(v))}
+                  />
+                  Çatdırılma var
                 </label>
               </div>
             </div>
@@ -492,7 +711,7 @@ export default function CreateAdForm() {
               <Textarea
                 {...register("description")}
                 placeholder="Məsələn: Pompa yenidir, qutusundadır."
-                className="rounded-xl min-h-25"
+                className="rounded-xl min-h-25 focus-visible:ring-0"
               />
             </div>
 
@@ -505,7 +724,11 @@ export default function CreateAdForm() {
               >
                 Geri
               </Button>
-              <Button type="button" onClick={nextStep} className="flex-2">
+              <Button
+                type="button"
+                onClick={nextStep}
+                className="flex-2 bg-red-600 hover:bg-red-700 text-white"
+              >
                 Növbəti
               </Button>
             </div>
@@ -522,7 +745,16 @@ export default function CreateAdForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Adınız</Label>
-                <Input {...register("fullName")} className="rounded-xl h-11" />
+                <Input
+                  {...register("fullName")}
+                  className="rounded-xl h-11"
+                  placeholder="Ad və Soyad"
+                />
+                {errors.fullName && (
+                  <p className="text-red-500 text-xs">
+                    {errors.fullName.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Ünvan (Şəhər)</Label>
@@ -531,22 +763,57 @@ export default function CreateAdForm() {
                   placeholder="Bakı"
                   className="rounded-xl h-11"
                 />
+                {errors.address && (
+                  <p className="text-red-500 text-xs">
+                    {errors.address.message}
+                  </p>
+                )}
               </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label>Mobil nömrə</Label>
+              <div className="space-y-2">
+                <Label>Email</Label>
                 <Input
-                  {...register("phone")}
-                  placeholder="050 000 00 00"
+                  {...register("email")}
+                  placeholder="email@address.com"
                   className="rounded-xl h-11"
                 />
+                {errors.email && (
+                  <p className="text-red-500 text-xs">{errors.email.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label>Mobil nömrə</Label>
+                <Controller
+                  name="phone"
+                  control={control}
+                  render={({ field: { onChange, name, value } }) => (
+                    <PatternFormat
+                      format="+994 (##) ### ## ##"
+                      mask="_"
+                      allowEmptyFormatting
+                      customInput={Input}
+                      name={name}
+                      value={value}
+                      onValueChange={(values) => {
+                        onChange(values.value); // Form state-inə təmiz rəqəmi yazır
+                      }}
+                      placeholder="+994 (50) 000 00 00"
+                      className="rounded-xl h-11 focus-visible:ring-0"
+                    />
+                  )}
+                />
+                {errors.phone && (
+                  <p className="text-xs text-red-500">{errors.phone.message}</p>
+                )}
               </div>
             </div>
 
             <div className="p-4 bg-slate-50 rounded-xl text-[11px] text-slate-500 leading-relaxed border">
               Elan yerləşdirərək, siz <b>avtohisse.az</b>-ın{" "}
-              <span className="underline">İstifadəçi razılaşması</span> və{" "}
-              <span className="underline">Qaydaları</span> ilə razı olduğunuzu
-              təsdiq edirsiniz.
+              <span className="underline cursor-pointer">
+                İstifadəçi razılaşması
+              </span>{" "}
+              və <span className="underline cursor-pointer">Qaydaları</span> ilə
+              razı olduğunuzu təsdiq edirsiniz.
             </div>
 
             <div className="flex gap-3">
@@ -560,9 +827,9 @@ export default function CreateAdForm() {
               </Button>
               <Button
                 type="submit"
-                className="flex-2 bg-[#e73121] hover:bg-red-700  font-semibold text-white shadow-lg shadow-red-100"
+                className="flex-2 bg-[#e73121] hover:bg-red-700 font-semibold text-white shadow-lg shadow-red-100"
               >
-                Davam et
+                Elanı yerləşdir
               </Button>
             </div>
           </div>

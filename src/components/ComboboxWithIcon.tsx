@@ -33,6 +33,7 @@ interface ComboboxWithIconProps {
   searchPlaceholder?: string;
   emptyText?: string;
   showIcon?: boolean;
+  className?: string;
 }
 
 export function ComboboxWithIcon({
@@ -43,6 +44,7 @@ export function ComboboxWithIcon({
   searchPlaceholder = "Axtar...",
   emptyText = "Tapılmadı.",
   showIcon = true,
+  className,
 }: ComboboxWithIconProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -55,19 +57,28 @@ export function ComboboxWithIcon({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between font-sans border-slate-200 hover:bg-slate-50"
+          className={cn(
+            "w-full justify-between font-sans border-slate-200 hover:bg-slate-50",
+            className, // <--- YENİ: Gələn class-ları bura əlavə edirik
+          )}
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 truncate">
             {selectedItem?.icon && showIcon && (
-              <Image
-                src={selectedItem.icon}
-                alt={selectedItem.label}
-                width={20}
-                height={20}
-                className="object-contain"
-              />
+              <div className="relative w-5 h-5 shrink-0">
+                <Image
+                  src={selectedItem.icon}
+                  alt={selectedItem.label}
+                  fill
+                  className="object-contain"
+                />
+              </div>
             )}
-            <span className={cn(!selectedItem && "text-muted-foreground")}>
+            <span
+              className={cn(
+                "truncate",
+                !selectedItem && "text-muted-foreground",
+              )}
+            >
               {selectedItem ? selectedItem.label : placeholder}
             </span>
           </div>
@@ -75,7 +86,8 @@ export function ComboboxWithIcon({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-(--radix-popover-trigger-width) p-0"
+        className="w-[200px] p-0" // Və ya w-[--radix-popover-trigger-width]
+        style={{ width: "var(--radix-popover-trigger-width)" }} // Eyni eni saxlamaq üçün
         align="start"
       >
         <Command>
@@ -86,9 +98,9 @@ export function ComboboxWithIcon({
               {data.map((item) => (
                 <CommandItem
                   key={item.value}
-                  value={item.value}
-                  onSelect={(currentValue) => {
-                    onChange(currentValue === value ? "" : currentValue);
+                  value={item.label} // Axtarışın düzgün işləməsi üçün label istifadə etmək daha yaxşıdır
+                  onSelect={() => {
+                    onChange(item.value === value ? "" : item.value);
                     setOpen(false);
                   }}
                   className={cn(
@@ -97,13 +109,14 @@ export function ComboboxWithIcon({
                   )}
                 >
                   {item.icon && showIcon && (
-                    <Image
-                      src={item.icon}
-                      alt={item.label}
-                      width={20}
-                      height={20}
-                      className="mr-2 object-contain"
-                    />
+                    <div className="relative w-5 h-5 mr-2 shrink-0">
+                      <Image
+                        src={item.icon}
+                        alt={item.label}
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
                   )}
                   {item.label}
                 </CommandItem>

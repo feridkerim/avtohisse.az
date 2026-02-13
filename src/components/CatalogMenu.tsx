@@ -7,7 +7,6 @@ import {
   SheetTrigger,
   SheetTitle,
   SheetDescription,
-  SheetClose,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, ChevronRight, X } from "lucide-react";
@@ -37,8 +36,8 @@ export function CatalogMenu() {
         </div>
         {/* Sol tərəf: Əsas Kateqoriyalar */}
         <div className="relative grow">
-          <div className="w-1/2 border-r overflow-y-auto p-1 h-full">
-            <ul>
+          <div className="w-1/2 border-r p-1 h-full">
+            <ul className="h-[99vh] overflow-y-auto">
               {CATEGORIES.map((cat) => (
                 <li
                   key={cat.id}
@@ -72,9 +71,9 @@ export function CatalogMenu() {
           </div>
 
           {/* Sağ tərəf: Alt Kateqoriyalar (Şəkildəki narıncı aktivlik) */}
-          <div className="w-1/2 overflow-y-auto absolute left-1/2 top-0 h-full p-1">
+          <div className="w-1/2 absolute left-1/2 top-0 p-1">
             {/* <h3 className="text-lg font-bold mb-4">{activeCategory.name}</h3> */}
-            <ul className="">
+            <ul className="h-[99vh] overflow-y-auto">
               {activeCategory.subCategories.map((sub, index) => (
                 <li key={index} className="border-b border-slate-100">
                   <Link
